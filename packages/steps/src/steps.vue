@@ -1,8 +1,11 @@
 <template>
   <div
     class="el-steps"
-    :class="['is-' + direction, center ? 'is-center' : '']">
-    <slot></slot>
+    :class="[
+       !simple && 'el-steps--' + direction,
+       simple && 'el-steps--simple'
+     ]">
+      <slot></slot>
   </div>
 </template>
 
@@ -19,6 +22,7 @@ export default {
     },
     alignCenter: Boolean,
     center: Boolean,
+    simple: Boolean,
     finishStatus: {
       type: String,
       default: 'finish'
@@ -45,6 +49,12 @@ export default {
       steps.forEach((child, index) => {
         child.index = index;
       });
+      if (this.center) {
+        const len = steps.length;
+        this.$nextTick(() => {
+          this.stepOffset = steps[len - 1].$el.getBoundingClientRect().width / (len - 1);
+        });
+      }
     }
   }
 };

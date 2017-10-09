@@ -1,3 +1,4 @@
+import { hasClass, addClass, removeClass } from 'element-ui/src/utils/dom';
 import ElCheckbox from 'element-ui/packages/checkbox';
 import ElTag from 'element-ui/packages/tag';
 import Vue from 'vue';
@@ -67,6 +68,9 @@ export default {
   render(h) {
     const originColumns = this.store.states.originColumns;
     const columnRows = convertToRows(originColumns, this.columns);
+    // 是否拥有多级表头
+    const isGroup = columnRows.length > 1;
+    if (isGroup) this.$parent.isGroup = true;
 
     return (
       <table
@@ -88,7 +92,7 @@ export default {
               : ''
           }
         </colgroup>
-        <thead>
+        <thead class={ [{ 'is-group': isGroup, 'has-gutter': this.hasGutter }] }>
           {
             this._l(columnRows, (columns, rowIndex) =>
               <tr>
@@ -101,7 +105,7 @@ export default {
                     on-mouseout={ this.handleMouseOut }
                     on-mousedown={ ($event) => this.handleMouseDown($event, column) }
                     on-click={ ($event) => this.handleHeaderClick($event, column) }
-                    class={ [column.id, column.order, column.headerAlign, column.className || '', rowIndex === 0 && this.isCellHidden(cellIndex, columns) ? 'is-hidden' : '', !column.children ? 'is-leaf' : '', column.labelClassName] }>
+                    class={ [column.id, column.order, column.headerAlign, column.className || '', rowIndex === 0 && this.isCellHidden(cellIndex, columns) ? 'is-hidden' : '', !column.children ? 'is-leaf' : '', column.labelClassName, column.sortable ? 'is-sortable' : ''] }>
                     <div class={ ['cell', column.filteredValue && column.filteredValue.length > 0 ? 'highlight' : '', column.labelClassName] }>
                     {
                       column.renderHeader
@@ -111,8 +115,12 @@ export default {
                     {
                       column.sortable
                         ? <span class="caret-wrapper" on-click={ ($event) => this.handleSortClick($event, column) }>
-                            <i class="sort-caret ascending" on-click={ ($event) => this.handleSortClick($event, column, 'ascending') }></i>
-                            <i class="sort-caret descending" on-click={ ($event) => this.handleSortClick($event, column, 'descending') }></i>
+                            <span class="sort-caret ascending" on-click={ ($event) => this.handleSortClick($event, column, 'ascending') }>
+                              <i class="el-icon-sort-up"></i>
+                            </span>
+                            <span class="sort-caret descending" on-click={ ($event) => this.handleSortClick($event, column, 'descending') }>
+                              <i class="el-icon-sort-down"></i>
+                            </span>
                           </span>
                         : ''
                     }
@@ -126,7 +134,7 @@ export default {
                 )
               }
               {
-                !this.fixed && this.layout.gutterWidth
+                this.hasGutter
                   ? <th class="gutter" style={{ width: this.layout.scrollY ? this.layout.gutterWidth + 'px' : '0' }}></th>
                   : ''
               }
@@ -182,6 +190,10 @@ export default {
 
     columns() {
       return this.store.states.columns;
+    },
+
+    hasGutter() {
+      return !this.fixed && this.layout.gutterWidth;
     }
   },
 
@@ -295,7 +307,7 @@ export default {
         const columnRect = columnEl.getBoundingClientRect();
         const minLeft = columnRect.left - tableLeft + 30;
 
-        columnEl.classList.add('noclick');
+        addClass(columnEl, 'noclick');
 
         this.dragState = {
           startMouseLeft: event.clientX,
@@ -344,7 +356,7 @@ export default {
           document.ondragstart = null;
 
           setTimeout(function() {
-            columnEl.classList.remove('noclick');
+            removeClass(columnEl, 'noclick');
           }, 0);
         };
 
@@ -395,8 +407,8 @@ export default {
       }
 
       if (target && target.tagName === 'TH') {
-        if (target.classList.contains('noclick')) {
-          target.classList.remove('noclick');
+        if (hasClass(target, 'noclick')) {
+          removeClass(target, 'noclick');
           return;
         }
       }

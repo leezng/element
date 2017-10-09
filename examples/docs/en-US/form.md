@@ -17,7 +17,7 @@
           }
         }, 1000);
       };
-      var validaePass = (rule, value, callback) => {
+      var validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('Please input the password'));
         } else {
@@ -27,7 +27,7 @@
           callback();
         }
       };
-      var validaePass2 = (rule, value, callback) => {
+      var validatePass2 = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('Please input the password again'));
         } else if (value !== this.ruleForm2.pass) {
@@ -101,10 +101,10 @@
         },
         rules2: {
           pass: [
-            { validator: validaePass, trigger: 'blur' }
+            { validator: validatePass, trigger: 'blur' }
           ],
           checkPass: [
-            { validator: validaePass2, trigger: 'blur' }
+            { validator: validatePass2, trigger: 'blur' }
           ],
           age: [
             { validator: checkAge, trigger: 'blur' }
@@ -512,10 +512,11 @@ Form component allows you to verify your data, helping you find and correct erro
 
 ### Custom validation rules
 
-:::demo This example shows how to customize your own validation rules to finish a two-factor password verification.
+This example shows how to customize your own validation rules to finish a two-factor password verification.
 
+:::demo Here we use `status-icon` to reflect validation result as an icon.
 ```html
-<el-form :model="ruleForm2" :rules="rules2" ref="ruleForm2" label-width="120px" class="demo-ruleForm">
+<el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="120px" class="demo-ruleForm">
   <el-form-item label="Password" prop="pass">
     <el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
   </el-form-item>
@@ -549,7 +550,7 @@ Form component allows you to verify your data, helping you find and correct erro
           }
         }, 1000);
       };
-      var validaePass = (rule, value, callback) => {
+      var validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('Please input the password'));
         } else {
@@ -559,7 +560,7 @@ Form component allows you to verify your data, helping you find and correct erro
           callback();
         }
       };
-      var validaePass2 = (rule, value, callback) => {
+      var validatePass2 = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('Please input the password again'));
         } else if (value !== this.ruleForm2.pass) {
@@ -576,10 +577,10 @@ Form component allows you to verify your data, helping you find and correct erro
         },
         rules2: {
           pass: [
-            { validator: validaePass, trigger: 'blur' }
+            { validator: validatePass, trigger: 'blur' }
           ],
           checkPass: [
-            { validator: validaePass2, trigger: 'blur' }
+            { validator: validatePass2, trigger: 'blur' }
           ],
           age: [
             { validator: checkAge, trigger: 'blur' }
@@ -734,6 +735,10 @@ Form component allows you to verify your data, helping you find and correct erro
 ```
 :::
 
+:::tip
+When an `el-form-item` is nested in another `el-form-item`, its label width will be `0`. You can set `label-width` on that `el-form-item` if needed.
+:::
+
 ### Form Attributes
 
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
@@ -742,9 +747,11 @@ Form component allows you to verify your data, helping you find and correct erro
 | rules | validation rules of form | object | — | — |
 | inline | whether the form is inline | boolean | — | false |
 | label-position | position of label | string | left/right/top | right |
-| label-width | width of label, and all form items will inherit from `Form` | string | — | — |
+| label-width | width of label, and all its direct child form items will inherit this value | string | — | — |
 | label-suffix | suffix of the label | string | — | — |
 | show-message  | whether to show the error message | boolean | — | true |
+| inline-message  | whether to display the error message inline with the form item | boolean | — | false |
+| status-icon  | whether to display an icon indicating the validation result | boolean | — | false |
 
 ### Form Methods
 
@@ -765,10 +772,16 @@ Form component allows you to verify your data, helping you find and correct erro
 | rules | validation rules of form | object | — | — |
 | error | field error message, set its value and the field will validate error and show this message immediately | string | — | — |
 | show-message  | whether to show the error message | boolean | — | true |
-
+| inline-message  | inline style validate message | boolean | — | false |
 
 ### Form-Item Slot
-| name | Description |
+| Name | Description |
 |------|--------|
 | — | content of Form Item |
 | label | content of label |
+
+### Form-Item Methods
+
+| Method | Description | Parameters |
+| ---- | ---- | ---- |
+| resetField | reset current field and remove validation result | — |

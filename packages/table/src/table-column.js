@@ -1,7 +1,7 @@
 import ElCheckbox from 'element-ui/packages/checkbox';
 import ElTag from 'element-ui/packages/tag';
 import objectAssign from 'element-ui/src/utils/merge';
-import { getValueByPath } from './util';
+import { getValueByPath } from 'element-ui/src/utils/util';
 
 let columnIdSeed = 1;
 
@@ -97,15 +97,13 @@ const getDefaultColumn = function(type, options) {
 
 const DEFAULT_RENDER_CELL = function(h, { row, column }) {
   const property = column.property;
+  const value = property && property.indexOf('.') === -1
+    ? row[property]
+    : getValueByPath(row, property);
   if (column && column.formatter) {
-    return column.formatter(row, column);
+    return column.formatter(row, column, value);
   }
-
-  if (property && property.indexOf('.') === -1) {
-    return row[property];
-  }
-
-  return getValueByPath(row, property);
+  return value;
 };
 
 export default {
@@ -265,23 +263,7 @@ export default {
     }
 
     column.renderCell = function(h, data) {
-      // 未来版本移除
-      if (_self.$vnode.data.inlineTemplate) {
-        renderCell = function() {
-          data._self = _self.context || data._self;
-          if (Object.prototype.toString.call(data._self) === '[object Object]') {
-            for (let prop in data._self) {
-              if (!data.hasOwnProperty(prop)) {
-                data[prop] = data._self[prop];
-              }
-            }
-          }
-          // 静态内容会缓存到 _staticTrees 内，不改的话获取的静态数据就不是内部 context
-          data._staticTrees = _self._staticTrees;
-          data.$options.staticRenderFns = _self.$options.staticRenderFns;
-          return _self.customRender.call(data);
-        };
-      } else if (_self.$scopedSlots.default) {
+      if (_self.$scopedSlots.default) {
         renderCell = () => _self.$scopedSlots.default(data);
       }
 

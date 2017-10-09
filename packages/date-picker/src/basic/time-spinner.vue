@@ -13,8 +13,7 @@
         v-for="(disabled, hour) in hoursList"
         track-by="hour"
         class="el-time-spinner__item"
-        :class="{ 'active': hour === hours, 'disabled': disabled }"
-        v-text="hour"></li>
+        :class="{ 'active': hour === hours, 'disabled': disabled }">{{ ('0' + hour).slice(-2) }}</li>
     </el-scrollbar>
     <el-scrollbar
       @mouseenter.native="emitSelectRange('minutes')"
@@ -28,8 +27,7 @@
         @click="handleClick('minutes', key, true)"
         v-for="(minute, key) in 60"
         class="el-time-spinner__item"
-        :class="{ 'active': key === minutes }"
-        v-text="key"></li>
+        :class="{ 'active': key === minutes }">{{ ('0' + key).slice(-2) }}</li>
     </el-scrollbar>
     <el-scrollbar
       v-show="showSeconds"
@@ -44,8 +42,7 @@
         @click="handleClick('seconds', key, true)"
         v-for="(second, key) in 60"
         class="el-time-spinner__item"
-        :class="{ 'active': key === seconds }"
-        v-text="key"></li>
+        :class="{ 'active': key === seconds }">{{ ('0' + key).slice(-2) }}</li>
     </el-scrollbar>
   </div>
 </template>
@@ -53,7 +50,6 @@
 <script type="text/babel">
   import { getRangeHours } from '../util';
   import ElScrollbar from 'element-ui/packages/scrollbar';
-  import debounce from 'throttle-debounce/debounce';
 
   export default {
     components: { ElScrollbar },
@@ -85,7 +81,7 @@
         if (!(newVal >= 0 && newVal <= 23)) {
           this.hoursPrivate = oldVal;
         }
-        this.ajustElTop('hour', newVal);
+        this.adjustElTop('hour', newVal);
         this.$emit('change', { hours: newVal });
       },
 
@@ -93,7 +89,7 @@
         if (!(newVal >= 0 && newVal <= 59)) {
           this.minutesPrivate = oldVal;
         }
-        this.ajustElTop('minute', newVal);
+        this.adjustElTop('minute', newVal);
         this.$emit('change', { minutes: newVal });
       },
 
@@ -101,7 +97,7 @@
         if (!(newVal >= 0 && newVal <= 59)) {
           this.secondsPrivate = oldVal;
         }
-        this.ajustElTop('second', newVal);
+        this.adjustElTop('second', newVal);
         this.$emit('change', { seconds: newVal });
       }
     },
@@ -129,12 +125,9 @@
         hoursPrivate: 0,
         minutesPrivate: 0,
         secondsPrivate: 0,
-        selectableRange: []
+        selectableRange: [],
+        currentScrollbar: null
       };
-    },
-
-    created() {
-      this.debounceAjustElTop = debounce(100, type => this.ajustElTop(type, this[`${type}s`]));
     },
 
     mounted() {
@@ -157,16 +150,25 @@
       emitSelectRange(type) {
         if (type === 'hours') {
           this.$emit('select-range', 0, 2);
+          this.adjustElTop('minute', this.minutes);
+          this.adjustElTop('second', this.seconds);
         } else if (type === 'minutes') {
           this.$emit('select-range', 3, 5);
+          this.adjustElTop('hour', this.hours);
+          this.adjustElTop('second', this.seconds);
         } else if (type === 'seconds') {
           this.$emit('select-range', 6, 8);
+          this.adjustElTop('minute', this.minutes);
+          this.adjustElTop('hour', this.hours);
         }
+        this.currentScrollbar = type;
       },
 
       bindScrollEvent() {
         const bindFuntion = (type) => {
-          this[`${type}El`].onscroll = (e) => this.handleScroll(type, e);
+          this[`${type}El`].onscroll = (e) => {
+            this.handleScroll(type, e);
+          };
         };
         bindFuntion('hour');
         bindFuntion('minute');
@@ -174,20 +176,49 @@
       },
 
       handleScroll(type) {
-        const ajust = {};
-        ajust[`${type}s`] = Math.min(Math.floor((this[`${type}El`].scrollTop - 80) / 32 + 3), 59);
-        this.debounceAjustElTop(type);
-        this.$emit('change', ajust);
+        const adjust = {};
+        adjust[`${type}s`] = Math.min(Math.floor((this[`${type}El`].scrollTop - 80) / 32 + 3), (`${type}` === 'hour' ? 23 : 59));
+        this.$emit('change', adjust);
       },
 
-      ajustScrollTop() {
-        this.ajustElTop('hour', this.hours);
-        this.ajustElTop('minute', this.minutes);
-        this.ajustElTop('second', this.seconds);
+      adjustScrollTop() {
+        this.adjustElTop('hour', this.hours);
+        this.adjustElTop('minute', this.minutes);
+        this.adjustElTop('second', this.seconds);
       },
 
-      ajustElTop(type, value) {
+      adjustElTop(type, value) {
+        if (!this[`${type}El`]) return;
         this[`${type}El`].scrollTop = Math.max(0, (value - 2.5) * 32 + 80);
+      },
+
+      scrollDown(step) {
+        if (!this.currentScrollbar) {
+          this.emitSelectRange('hours');
+        }
+
+        const label = this.currentScrollbar;
+        const hoursList = this.hoursList;
+        let now = this[label];
+
+        if (this.currentScrollbar === 'hours') {
+          let total = Math.abs(step);
+          step = step > 0 ? 1 : -1;
+          let length = hoursList.length;
+          while (length-- && total) {
+            now = (now + step + hoursList.length) % hoursList.length;
+            if (hoursList[now]) {
+              continue;
+            }
+            total--;
+          }
+          if (hoursList[now]) return;
+        } else {
+          now = (now + step + 60) % 60;
+        }
+
+        this.$emit('change', { [label]: now });
+        this.adjustElTop(label.slice(0, -1), now);
       }
     }
   };

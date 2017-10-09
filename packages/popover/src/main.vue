@@ -2,8 +2,8 @@
   <span>
     <transition :name="transition" @after-leave="doDestroy">
       <div
-        class="el-popover"
-        :class="[popperClass]"
+        class="el-popover el-popper"
+        :class="[popperClass, content && 'el-popover--plain']"
         ref="popper"
         v-show="!disabled && showPopper"
         :style="{ width: width + 'px' }">
@@ -30,6 +30,10 @@ export default {
       default: 'click',
       validator: value => ['click', 'focus', 'hover', 'manual'].indexOf(value) > -1
     },
+    openDelay: {
+      type: Number,
+      default: 0
+    },
     title: String,
     disabled: Boolean,
     content: String,
@@ -48,6 +52,12 @@ export default {
   watch: {
     showPopper(newVal, oldVal) {
       newVal ? this.$emit('show') : this.$emit('hide');
+    },
+    '$refs.reference': {
+      deep: true,
+      handler(val) {
+        console.log(val);
+      }
     }
   },
 
@@ -105,10 +115,17 @@ export default {
       this.showPopper = false;
     },
     handleMouseEnter() {
-      this.showPopper = true;
       clearTimeout(this._timer);
+      if (this.openDelay) {
+        this._timer = setTimeout(() => {
+          this.showPopper = true;
+        }, this.openDelay);
+      } else {
+        this.showPopper = true;
+      }
     },
     handleMouseLeave() {
+      clearTimeout(this._timer);
       this._timer = setTimeout(() => {
         this.showPopper = false;
       }, 200);

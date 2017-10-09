@@ -1,14 +1,15 @@
 <template>
-  <div class="el-autocomplete">
+  <div
+    class="el-autocomplete"
+    v-clickoutside="close"
+    aria-haspopup="listbox"
+    role="combobox"
+    :aria-expanded="suggestionVisible"
+    :aria-owns="id"
+  >
     <el-input
       ref="input"
-      :value="value"
-      :disabled="disabled"
-      :placeholder="placeholder"
-      :name="name"
-      :size="size"
-      :icon="icon"
-      :on-icon-click="onIconClick"
+      v-bind="$props"
       @compositionstart.native="handleComposition"
       @compositionupdate.native="handleComposition"
       @compositionend.native="handleComposition"
@@ -17,7 +18,9 @@
       @blur="handleBlur"
       @keydown.up.native.prevent="highlight(highlightedIndex - 1)"
       @keydown.down.native.prevent="highlight(highlightedIndex + 1)"
-      @keydown.enter.native.prevent="handleKeyEnter"
+      @keydown.enter.native="handleKeyEnter"
+      @keydown.native.tab="close"
+      :label="label"
     >
       <template slot="prepend" v-if="$slots.prepend">
         <slot name="prepend"></slot>
@@ -27,18 +30,32 @@
       </template>
     </el-input>
     <el-autocomplete-suggestions
-      :props="props"
+      visible-arrow
       :class="[popperClass ? popperClass : '']"
       ref="suggestions"
-      :suggestions="suggestions"
-    >
+      :id="id">
+      <li
+        v-for="(item, index) in suggestions"
+        :key="index"
+        :class="{'highlighted': highlightedIndex === index}"
+        @click="select(item)"
+        :id="`${id}-item-${index}`"
+        role="option"
+        :aria-selected="highlightedIndex === index"
+      >
+        <slot :item="item">
+          {{ item[props.label] }}
+        </slot>
+      </li>
     </el-autocomplete-suggestions>
   </div>
 </template>
 <script>
   import ElInput from 'element-ui/packages/input';
+  import Clickoutside from 'element-ui/src/utils/clickoutside';
   import ElAutocompleteSuggestions from './autocomplete-suggestions.vue';
   import Emitter from 'element-ui/src/mixins/emitter';
+  import { generateId } from 'element-ui/src/utils/util';
 
   export default {
     name: 'ElAutocomplete',
@@ -51,6 +68,8 @@
       ElInput,
       ElAutocompleteSuggestions
     },
+
+    directives: { Clickoutside },
 
     props: {
       props: {
@@ -76,11 +95,16 @@
       },
       customItem: String,
       icon: String,
-      onIconClick: Function
+      onIconClick: Function,
+      selectWhenUnmatched: {
+        type: Boolean,
+        default: false
+      },
+      label: String
     },
     data() {
       return {
-        isFocus: false,
+        activated: false,
         isOnComposition: false,
         suggestions: [],
         loading: false,
@@ -91,7 +115,10 @@
       suggestionVisible() {
         const suggestions = this.suggestions;
         let isValidData = Array.isArray(suggestions) && suggestions.length > 0;
-        return (isValidData || this.loading) && this.isFocus;
+        return (isValidData || this.loading) && this.activated;
+      },
+      id() {
+        return `el-autocomplete-${generateId()}`;
       }
     },
     watch: {
@@ -127,33 +154,45 @@
         }
         this.getData(value);
       },
-      handleFocus() {
-        this.isFocus = true;
+      handleFocus(event) {
+        this.activated = true;
+        this.$emit('focus', event);
         if (this.triggerOnFocus) {
           this.getData(this.value);
         }
       },
-      handleBlur() {
-        // 因为 blur 事件处理优先于 select 事件执行
-        setTimeout(_ => {
-          this.isFocus = false;
-        }, 100);
+      handleBlur(event) {
+        this.$emit('blur', event);
       },
-      handleKeyEnter() {
+      close(e) {
+        this.activated = false;
+      },
+      handleKeyEnter(e) {
         if (this.suggestionVisible && this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
+          e.preventDefault();
           this.select(this.suggestions[this.highlightedIndex]);
+        } else if (this.selectWhenUnmatched) {
+          this.$emit('select', {value: this.value});
+          this.$nextTick(_ => {
+            this.suggestions = [];
+            this.highlightedIndex = -1;
+          });
         }
       },
       select(item) {
-        this.$emit('input', item[this.props.value]);
+        this.$emit('input', item[this.props.label]);
         this.$emit('select', item);
         this.$nextTick(_ => {
           this.suggestions = [];
+          this.highlightedIndex = -1;
         });
       },
       highlight(index) {
         if (!this.suggestionVisible || this.loading) { return; }
-        if (index < 0) index = 0;
+        if (index < 0) {
+          this.highlightedIndex = -1;
+          return;
+        }
         if (index >= this.suggestions.length) {
           index = this.suggestions.length - 1;
         }
@@ -170,14 +209,19 @@
         if (offsetTop < scrollTop) {
           suggestion.scrollTop -= highlightItem.scrollHeight;
         }
-
         this.highlightedIndex = index;
+        this.$el.querySelector('.el-input__inner').setAttribute('aria-activedescendant', `${this.id}-item-${this.highlightedIndex}`);
       }
     },
     mounted() {
       this.$on('item-click', item => {
         this.select(item);
       });
+      let $input = this.$el.querySelector('.el-input__inner');
+      $input.setAttribute('role', 'textbox');
+      $input.setAttribute('aria-autocomplete', 'list');
+      $input.setAttribute('aria-controls', 'id');
+      $input.setAttribute('aria-activedescendant', `${this.id}-item-${this.highlightedIndex}`);
     },
     beforeDestroy() {
       this.$refs.suggestions.$destroy();

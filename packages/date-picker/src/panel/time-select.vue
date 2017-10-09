@@ -1,10 +1,11 @@
 <template>
-  <transition name="el-zoom-in-top" @after-leave="$emit('dodestroy')">
+  <transition name="el-zoom-in-top" @before-enter="handleMenuEnter" @after-leave="$emit('dodestroy')">
     <div
+      ref="popper"
       v-show="visible"
       :style="{ width: width + 'px' }"
       :class="popperClass"
-      class="el-picker-panel time-select">
+      class="el-picker-panel time-select el-popper">
       <el-scrollbar noresize wrap-class="el-picker-panel__content">
         <div class="time-select-item"
           v-for="item in items"
@@ -18,9 +19,10 @@
 
 <script type="text/babel">
   import ElScrollbar from 'element-ui/packages/scrollbar';
+  import scrollIntoView from 'element-ui/src/utils/scroll-into-view';
 
   const parseTime = function(time) {
-    const values = ('' || time).split(':');
+    const values = (time || '').split(':');
     if (values.length >= 2) {
       const hours = parseInt(values[0], 10);
       const minutes = parseInt(values[1], 10);
@@ -77,10 +79,11 @@
       value(val) {
         if (!val) return;
         if (this.minTime && compareTime(val, this.minTime) < 0) {
-          this.$emit('pick');
+          this.$emit('pick', '', false, false);
         } else if (this.maxTime && compareTime(val, this.maxTime) > 0) {
-          this.$emit('pick');
+          this.$emit('pick', '', false, false);
         }
+        this.$nextTick(() => this.scrollToOption());
       }
     },
 
@@ -92,7 +95,35 @@
       },
 
       handleClear() {
-        this.$emit('pick');
+        this.$emit('pick', '', false, false);
+      },
+
+      scrollToOption(className = 'selected') {
+        const menu = this.$refs.popper.querySelector('.el-picker-panel__content');
+        scrollIntoView(menu, menu.getElementsByClassName(className)[0]);
+      },
+
+      handleMenuEnter() {
+        this.$nextTick(() => this.scrollToOption());
+      },
+
+      scrollDown(step) {
+        const items = this.items;
+        let index = items.map(item => item.value).indexOf(this.value);
+        let length = items.length;
+        let total = Math.abs(step);
+        step = step > 0 ? 1 : -1;
+        while (length-- && total) {
+          index = (index + step + items.length) % items.length;
+          const item = items[index];
+          if (!item.disabled) {
+            total--;
+          }
+        }
+        if (!items[index].disabled) {
+          this.value = items[index].value;
+          this.$emit('pick', this.value, true);
+        }
       }
     },
 

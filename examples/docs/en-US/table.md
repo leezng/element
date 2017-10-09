@@ -561,7 +561,6 @@ When there are too many rows, you can use a fixed header.
   <el-table
     :data="tableData3"
     height="250"
-    border
     style="width: 100%">
     <el-table-column
       prop="date"
@@ -629,7 +628,6 @@ When there are too many columns, you can fix some of them.
 <template>
   <el-table
     :data="tableData"
-    border
     style="width: 100%">
     <el-table-column
       fixed
@@ -732,7 +730,6 @@ When you have huge chunks of data to put in a table, you can fix the header and 
 <template>
   <el-table
     :data="tableData3"
-    border
     style="width: 100%"
     height="250">
     <el-table-column
@@ -839,7 +836,6 @@ When the the data is dynamically changed, you might want the table to have a max
 <template>
   <el-table
     :data="tableData4"
-    border
     style="width: 100%"
     max-height="250">
     <el-table-column
@@ -964,7 +960,6 @@ When the data structure is complex, you can use group header to show the data hi
 <template>
   <el-table
     :data="tableData3"
-    border
     style="width: 100%">
     <el-table-column
       prop="date"
@@ -1150,7 +1145,6 @@ You can also select multiple rows.
   <el-table
     ref="multipleTable"
     :data="tableData3"
-    border
     style="width: 100%"
     @selection-change="handleSelectionChange">
     <el-table-column
@@ -1244,7 +1238,6 @@ Sort the data to find or compare data quickly.
 <template>
   <el-table
     :data="tableData"
-    border
     :default-sort = "{prop: 'date', order: 'descending'}"
     style="width: 100%">
     <el-table-column
@@ -1308,7 +1301,6 @@ Filter the table to find desired data.
 <template>
   <el-table
     :data="tableData"
-    border
     style="width: 100%">
     <el-table-column
       prop="date"
@@ -1390,7 +1382,6 @@ Customize table column so it can be integrated with other components.
 <template>
   <el-table
     :data="tableData"
-    border
     style="width: 100%">
     <el-table-column
       label="Date"
@@ -1704,7 +1695,7 @@ For table of numbers, you can add an extra row at the table footer displaying ea
 | current-row-key | key of current row, a set only prop | string,number | — | — |
 | row-class-name | function that returns custom class names for a row, or a string assigning class names for every row | Function(row, index)/String | — | — |
 | row-style | function that returns custom style for a row,  or a string assigning custom style for every row | Function(row, index)/Object | — | — |
-| row-key | key of row data, used for optimizing rendering. Required if `reserve-selection` is on | Function(row)/String | — | — |
+| row-key | key of row data, used for optimizing rendering. Required if `reserve-selection` is on. When its type is String, multi-level access is supported, e.g. `user.info.id`, but `user.info[0].id` is not supported, in which case `Function` should be used. | Function(row)/String | — | — |
 | empty-text | Displayed text when data is empty. You can customize this area with `slot="empty"` | String | — | No Data |
 | default-expand-all | whether expand all rows by default, only works when the table has a column type="expand" | Boolean | — | false |
 | expand-row-keys | set expanded rows by this prop, prop's value is the keys of expand rows, you should set row-key before using this prop | Array | — | |
@@ -1760,7 +1751,7 @@ For table of numbers, you can add an extra row at the table footer displaying ea
 | sortable | whether column can be sorted. Remote sorting can be done by setting this attribute to 'custom' and listening to the `sort-change` event of Table | boolean, string | true, false, custom | false |
 | sort-method | sorting method, works when `sortable` is `true`. Should return a boolean. | Function(a, b) | — | — |
 | resizable | whether column width can be resized, works when `border` of `el-table` is `true` | boolean | — | false |
-| formatter | function that formats content | Function(row, column) | — | — |
+| formatter | function that formats cell content | Function(row, column, cellValue) | — | — |
 | show-overflow-tooltip | whether to hide extra content and show them in a tooltip when hovering on the cell | boolean | — | false |
 | align | alignment | string | left/center/right | left |
 | header-align | alignment of the table header. If omitted, the value of the above `align` attribute will be applied | String | left/center/right | — |

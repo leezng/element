@@ -90,12 +90,12 @@ export default {
             this.post(rawFile);
           }
         }, () => {
-          this.onRemove(rawFile, true);
+          this.onRemove(null, rawFile);
         });
       } else if (before !== false) {
         this.post(rawFile);
       } else {
-        this.onRemove(rawFile, true);
+        this.onRemove(null, rawFile);
       }
     },
     abort(file) {
@@ -142,7 +142,13 @@ export default {
     },
     handleClick() {
       if (!this.disabled) {
+        this.$refs.input.value = null;
         this.$refs.input.click();
+      }
+    },
+    handleKeydown(e) {
+      if (e.keyCode === 13 || e.keyCode === 32) {
+        this.handleClick();
       }
     }
   },
@@ -157,19 +163,21 @@ export default {
       accept,
       listType,
       uploadFiles,
-      disabled
+      disabled,
+      handleKeydown
     } = this;
     const data = {
       class: {
         'el-upload': true
       },
       on: {
-        click: handleClick
+        click: handleClick,
+        keydown: handleKeydown
       }
     };
     data.class[`el-upload--${listType}`] = true;
     return (
-      <div {...data}>
+      <div {...data} tabindex="0" >
         {
           drag
           ? <upload-dragger disabled={disabled} on-file={uploadFiles}>{this.$slots.default}</upload-dragger>

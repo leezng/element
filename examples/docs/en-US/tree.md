@@ -93,6 +93,35 @@
     }]
   }];
 
+  const data3 = [{
+    id: 1,
+    label: 'Level one 1',
+    children: [{
+      id: 3,
+      label: 'Level two 2-1',
+      children: [{
+        id: 4,
+        label: 'Level three 3-1-1'
+      }, {
+        id: 5,
+        label: 'Level three 3-1-2',
+        disabled: true
+      }]
+    }, {
+      id: 2,
+      label: 'Level two 2-2',
+      disabled: true,
+      children: [{
+        id: 6,
+        label: 'Level three 3-2-1'
+      }, {
+        id: 7,
+        label: 'Level three 3-2-2',
+        disabled: true
+      }]
+    }]
+  }];
+
   let id = 1000;
 
   const regions = [{
@@ -106,6 +135,12 @@
   const props = {
     label: 'name',
     children: 'zones'
+  };
+
+  const props1 = {
+    label: 'name',
+    children: 'zones',
+    isLeaf: 'leaf'
   };
 
   const defaultProps = {
@@ -156,6 +191,23 @@
           resolve(data);
         }, 500);
       },
+      loadNode1(node, resolve) {
+        if (node.level === 0) {
+          return resolve([{ name: 'region' }]);
+        }
+        if (node.level > 1) return resolve([]);
+
+        setTimeout(() => {
+          const data = [{
+            name: 'leaf',
+            leaf: true
+          }, {
+            name: 'zone'
+          }];
+
+          resolve(data);
+        }, 500);
+      },
       getCheckedNodes() {
         console.log(this.$refs.tree.getCheckedNodes());
       },
@@ -181,22 +233,28 @@
         this.$refs.tree.setCheckedKeys([]);
       },
       append(store, data) {
-        store.append({ id: id++, label: 'testtest', children: [] }, data);
+        const newChild = { id: id++, label: 'testtest', children: [] };
+        store.append(newChild, data);
+        data.children = data.children || [];
+        data.children.push(newChild);
       },
 
-      remove(store, data) {
+      remove(store, node, data) {
+        const parent = node.parent;
+        const index = parent.data.children.findIndex(d => d.id === data.id);
+        parent.data.children.splice(index, 1);
         store.remove(data);
       },
 
       renderContent(h, { node, data, store }) {
         return (
-          <span style="white-space: normal">
+          <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
             <span>
               <span>{node.label}</span>
             </span>
-            <span style="float: right; margin-right: 20px">
-              <el-button size="mini" on-click={ () => this.append(store, data) }>Append</el-button>
-              <el-button size="mini" on-click={ () => this.remove(store, data) }>Delete</el-button>
+            <span>
+              <el-button style="font-size: 12px;" type="text" on-click={ () => this.append(store, data) }>Append</el-button>
+              <el-button style="font-size: 12px;" type="text" on-click={ () => this.remove(store, node, data) }>Delete</el-button>
             </span>
           </span>);
       },
@@ -211,9 +269,11 @@
       return {
         data,
         data2,
+        data3,
         regions,
         defaultProps,
         props,
+        props1,
         defaultCheckedKeys: [5],
         defaultExpandedKeys: [2, 3],
         filterText: ''
@@ -296,7 +356,6 @@ Used for node selection. In the following example, data for each layer is acquir
 ::: demo
 ```html
 <el-tree
-  :data="regions"
   :props="props"
   :load="loadNode"
   lazy
@@ -308,11 +367,6 @@ Used for node selection. In the following example, data for each layer is acquir
   export default {
     data() {
       return {
-        regions: [{
-          'name': 'region1'
-        }, {
-          'name': 'region2'
-        }],
         props: {
           label: 'name',
           children: 'zones'
@@ -357,6 +411,109 @@ Used for node selection. In the following example, data for each layer is acquir
           resolve(data);
         }, 500);
       }
+    }
+  };
+</script>
+```
+:::
+
+### Custom leaf node in lazy mode
+
+::: demo
+```html
+<el-tree
+  :props="props1"
+  :load="loadNode1"
+  lazy
+  show-checkbox>
+</el-tree>
+
+<script>
+  export default {
+    data() {
+      return {
+        props1: {
+          label: 'name',
+          children: 'zones',
+          isLeaf: 'leaf'
+        },
+      };
+    },
+    methods: {
+      loadNode1(node, resolve) {
+        if (node.level === 0) {
+          return resolve([{ name: 'region' }]);
+        }
+        if (node.level > 1) return resolve([]);
+
+        setTimeout(() => {
+          const data = [{
+            name: 'leaf',
+            leaf: true
+          }, {
+            name: 'zone'
+          }];
+
+          resolve(data);
+        }, 500);
+      }
+    }
+  };
+</script>
+```
+:::
+
+### Disabled checkbox
+
+The checkbox of a node can be set as disabled.
+
+::: demo In the example, 'disabled' property is declared in defaultProps, and some nodes are set as 'disabled:true'. The corresponding checkboxes are disabled and can't be clicked.
+```html
+<el-tree
+  :data="data3"
+  :props="defaultProps"
+  show-checkbox
+  @check-change="handleCheckChange">
+</el-tree>
+
+<script>
+  export default {
+    data() {
+      return {
+        data3: [{
+          id: 1,
+          label: 'Level one 1',
+          children: [{
+            id: 3,
+            label: 'Level two 2-1',
+            children: [{
+              id: 4,
+              label: 'Level three 3-1-1'
+            }, {
+              id: 5,
+              label: 'Level three 3-1-2',
+              disabled: true
+            }]
+          }, {
+            id: 2,
+            label: 'Level two 2-2',
+            disabled: true,
+            children: [{
+              id: 6,
+              label: 'Level three 3-2-1'
+            }, {
+              id: 7,
+              label: 'Level three 3-2-2',
+              disabled: true
+            }]
+          }]
+        }],
+        defaultProps: {
+            children: 'children',
+            label: 'label',
+            disabled: 'disabled',
+        },
+      };
     }
   };
 </script>
@@ -526,6 +683,10 @@ Tree nodes can be initially expanded or checked
 ### Custom node content
 The content of tree nodes can be customized, so you can add icons or buttons as you will
 
+:::warning
+`Append` and `remove` do not change `data`
+:::
+
 ::: demo Use `render-content` to assign a render function that returns the content of tree nodes. See Vue's documentation for a detailed introduction of render functions. Note that this demo can't run in jsfiddle because it doesn't support JSX syntax. In a real project, `render-content` will work if relevant dependencies are correctly configured.
 ```html
 <el-tree
@@ -588,22 +749,28 @@ The content of tree nodes can be customized, so you can add icons or buttons as 
 
     methods: {
       append(store, data) {
-        store.append({ id: id++, label: 'testtest', children: [] }, data);
+        const newChild = { id: id++, label: 'testtest', children: [] };
+        store.append(newChild, data); // need change data by yourself
+        data.children = data.children || [];
+        data.children.push(newChild);
       },
 
-      remove(store, data) {
-        store.remove(data);
+      remove(store, node, data) {
+        const parent = node.parent;
+        const index = parent.data.children.findIndex(d => d.id === data.id);
+        parent.data.children.splice(index, 1);
+        store.remove(data); // need change data by yourself
       },
 
       renderContent(h, { node, data, store }) {
         return (
-          <span>
+          <span style="flex: 1; display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding-right: 8px;">
             <span>
               <span>{node.label}</span>
             </span>
-            <span style="float: right; margin-right: 20px">
-              <el-button size="mini" on-click={ () => this.append(store, data) }>Append</el-button>
-              <el-button size="mini" on-click={ () => this.remove(store, data) }>Delete</el-button>
+            <span>
+              <el-button style="font-size: 12px;" type="text" on-click={ () => this.append(store, data) }>Append</el-button>
+              <el-button style="font-size: 12px;" type="text" on-click={ () => this.remove(store, node, data) }>Delete</el-button>
             </span>
           </span>);
       }
@@ -774,7 +941,6 @@ Only one node among the same level can be expanded at one time.
 | load                  | method for loading subtree data          | function(node, resolve)     | —               | —       |
 | render-content        | render function for tree node            | Function(h, { node }        | —               | —       |
 | highlight-current     | whether current node is highlighted      | boolean                     | —               | false   |
-| current-node-key      | key of current node, a set only prop     | string, number              | —               | —       |
 | default-expand-all    | whether to expand all nodes by default   | boolean                     | —               | false   |
 | expand-on-click-node  | whether to expand or collapse node when clicking on the node, if false, then expand or collapse node only when clicking on the arrow icon. | —                           | true            |         |
 | auto-expand-parent    | whether to expand father node when a child node is expanded | boolean                     | —               | true    |
@@ -789,19 +955,26 @@ Only one node among the same level can be expanded at one time.
 ### props
 | Attribute | Description                              | Type   | Accepted Values | Default |
 | --------- | ---------------------------------------- | ------ | --------------- | ------- |
-| label     | specify which key of node object is used as the node's label | string | —               | —       |
-| children  | specify which key of node object is used as the node's subtree | string | —               | —       |
+| label     | specify which key of node object is used as the node's label | string, function(data, node) | —               | —       |
+| children | specify which node object is used as the node's subtree | string, function(data, node) | —               | —       |
+| disabled | specify which key of node object represents if node's checkbox is disabled | boolean, function(data, node) | —    | —    |
+| isLeaf | specify whether the node is a leaf node | boolean, function(data, node) | —    | —    |
 
 ### Method
 `Tree` has the following method, which returns the currently selected array of nodes.
 | Method          | Description                              | Parameters                               |
 | --------------- | ---------------------------------------- | ---------------------------------------- |
 | filter          | filter all tree nodes, filtered nodes will be hidden | Accept a parameter which will be used as first parameter for filter-node-method |
+| updateKeyChildren | set new data to node, only works when `node-key` is assigned  | (key, data) Accept two parameters: 1. key of node 2. new data |
 | getCheckedNodes | If the node can be selected (`show-checkbox` is `true`), it returns the currently selected array of nodes | Accept a boolean type parameter whose default value is `false`. If the parameter is `true`, it only returns the currently selected array of sub-nodes. |
 | setCheckedNodes | set certain nodes to be checked, only works when `node-key` is assigned | an array of nodes to be checked          |
 | getCheckedKeys  | If the node can be selected (`show-checkbox` is `true`), it returns the currently selected array of node's keys | (leafOnly) Accept a boolean type parameter whose default value is `false`. If the parameter is `true`, it only returns the currently selected array of sub-nodes. |
 | setCheckedKeys  | set certain nodes to be checked, only works when `node-key` is assigned | (keys, leafOnly) Accept two parameters: 1. an array of node's keys to be checked 2. a boolean type parameter whose default value is `false`. If the parameter is `true`, it only returns the currently selected array of sub-nodes. |
 | setChecked      | set node to be checked or not, only works when `node-key` is assigned | (key/data, checked, deep) Accept three parameters: 1. node's key or data to be checked 2. a boolean typed parameter indicating checked or not. 3. a boolean typed parameter indicating deep or not. |
+| getCurrentKey   | return the highlight node's key (null if no node is highlighted) | — |
+| getCurrentNode  | return the highlight node (null if no node is highlighted) | — |
+| setCurrentKey   | set highlighted node by key, only works when `node-key` is assigned | (key) the node's key to be highlighted |
+| setCurrentNode  | set highlighted node, only works when `node-key` is assigned | (node) the node to be highlighted |
 
 ### Events
 | Event Name     | Description                              | Parameters                               |

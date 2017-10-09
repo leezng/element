@@ -1,6 +1,12 @@
 <template>
-  <label class="el-switch" :class="{ 'is-disabled': disabled, 'el-switch--wide': hasText, 'is-checked': checked }">
-    <div class="el-switch__mask" v-show="disabled"></div>
+  <div
+    class="el-switch"
+    :class="{ 'is-disabled': disabled, 'is-checked': checked }"
+    role="switch"
+    :aria-checked="checked"
+    :aria-disabled="disabled"
+    @click="switchValue"
+  >
     <input
       class="el-switch__input"
       type="checkbox"
@@ -9,38 +15,33 @@
       :name="name"
       :true-value="onValue"
       :false-value="offValue"
-      :disabled="disabled">
+      :disabled="disabled"
+      @keydown.enter="switchValue"
+    >
+    <span
+      :class="['el-switch__label', 'el-switch__label--left', !checked ? 'is-active' : '']"
+      v-if="offIconClass || offText">
+      <i :class="[offIconClass]" v-if="offIconClass"></i>
+      <span v-if="!offIconClass && offText" :aria-hidden="checked">{{ offText }}</span>
+    </span>
     <span class="el-switch__core" ref="core" :style="{ 'width': coreWidth + 'px' }">
       <span class="el-switch__button" :style="{ transform }"></span>
     </span>
-    <transition name="label-fade">
-      <div
-        class="el-switch__label el-switch__label--left"
-        v-show="checked"
-        :style="{ 'width': coreWidth + 'px' }">
-        <i :class="[onIconClass]" v-if="onIconClass"></i>
-        <span v-if="!onIconClass && onText">{{ onText }}</span>
-      </div>
-    </transition>
-    <transition name="label-fade">
-      <div
-        class="el-switch__label el-switch__label--right"
-        v-show="!checked"
-        :style="{ 'width': coreWidth + 'px' }">
-        <i :class="[offIconClass]" v-if="offIconClass"></i>
-        <span v-if="!offIconClass && offText">{{ offText }}</span>
-      </div>
-    </transition>
-  </label>
+    <span
+      :class="['el-switch__label', 'el-switch__label--right', checked ? 'is-active' : '']"
+      v-if="onIconClass || onText">
+      <i :class="[onIconClass]" v-if="onIconClass"></i>
+      <span v-if="!onIconClass && onText" :aria-hidden="!checked">{{ onText }}</span>
+    </span>
+  </div>
 </template>
-
 <script>
   export default {
     name: 'ElSwitch',
     props: {
       value: {
         type: [Boolean, String, Number],
-        default: true
+        default: false
       },
       disabled: {
         type: Boolean,
@@ -58,14 +59,8 @@
         type: String,
         default: ''
       },
-      onText: {
-        type: String,
-        default: 'ON'
-      },
-      offText: {
-        type: String,
-        default: 'OFF'
-      },
+      onText: String,
+      offText: String,
       onColor: {
         type: String,
         default: ''
@@ -101,16 +96,13 @@
       checked() {
         return this.value === this.onValue;
       },
-      hasText() {
-        /* istanbul ignore next */
-        return this.onText || this.offText;
-      },
       transform() {
-        return this.checked ? `translate(${ this.coreWidth - 20 }px, 2px)` : 'translate(2px, 2px)';
+        return this.checked ? `translate3d(${ this.coreWidth - 20 }px, 0, 0)` : '';
       }
     },
     watch: {
       checked() {
+        this.$refs.input.checked = this.checked;
         if (this.onColor || this.offColor) {
           this.setBackgroundColor();
         }
@@ -118,8 +110,8 @@
     },
     methods: {
       handleChange(event) {
-        this.$emit('change', !this.checked ? this.onValue : this.offValue);
         this.$emit('input', !this.checked ? this.onValue : this.offValue);
+        this.$emit('change', !this.checked ? this.onValue : this.offValue);
         this.$nextTick(() => {
           // set input's checked property
           // in case parent refuses to change component's value
@@ -130,13 +122,14 @@
         let newColor = this.checked ? this.onColor : this.offColor;
         this.$refs.core.style.borderColor = newColor;
         this.$refs.core.style.backgroundColor = newColor;
+      },
+      switchValue() {
+        this.$refs.input.click();
       }
     },
     mounted() {
       /* istanbul ignore if */
-      if (this.width === 0) {
-        this.coreWidth = this.hasText ? 58 : 46;
-      }
+      this.coreWidth = this.width || 40;
       if (this.onColor || this.offColor) {
         this.setBackgroundColor();
       }

@@ -503,9 +503,11 @@
 
 ### 自定义校验规则
 
-::: demo 这个例子中展示了如何使用自定义验证规则来完成密码的二次验证
+这个例子中展示了如何使用自定义验证规则来完成密码的二次验证。
+
+::: demo 本例还使用`status-icon`属性为输入框添加了表示校验结果的反馈图标。
 ```html
-<el-form :model="ruleForm2" :rules="rules2" ref="ruleForm2" label-width="100px" class="demo-ruleForm">
+<el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="100px" class="demo-ruleForm">
   <el-form-item label="密码" prop="pass">
     <el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
   </el-form-item>
@@ -722,6 +724,10 @@
 ```
 :::
 
+:::tip
+嵌套在 `el-form-item` 中的 `el-form-item` 标签宽度默认为零，不会继承 `el-form` 的 `label-width`。如果需要可以为其单独设置 `label-width` 属性。
+:::
+
 ### Form Attributes
 
 | 参数      | 说明          | 类型      | 可选值                           | 默认值  |
@@ -730,9 +736,11 @@
 | rules    | 表单验证规则 | object | — | — |
 | inline    | 行内表单模式 | boolean | — | false |
 | label-position | 表单域标签的位置 | string |  right/left/top            | right |
-| label-width | 表单域标签的宽度，所有的 form-item 都会继承 form 组件的 labelWidth 的值 | string | — | — |
+| label-width | 表单域标签的宽度，作为 Form 直接子元素的 form-item 会继承该值 | string | — | — |
 | label-suffix | 表单域标签的后缀 | string | — | — |
 | show-message  | 是否显示校验错误信息 | boolean | — | true |
+| inline-message  | 是否以行内形式展示校验信息 | boolean | — | false |
+| status-icon  | 是否在输入框中显示校验结果反馈图标 | boolean | — | false |
 
 ### Form Methods
 
@@ -753,9 +761,16 @@
 | rules    | 表单验证规则 | object | — | — |
 | error    | 表单域验证错误信息, 设置该值会使表单验证状态变为`error`，并显示该错误信息 | string | — | — |
 | show-message  | 是否显示校验错误信息 | boolean | — | true |
+| inline-message  | 以行内形式展示校验信息 | boolean | — | false |
 
 ### Form-Item Slot
 | name | 说明 |
 |------|--------|
 | — | Form Item 的内容 |
 | label | 标签文本的内容 |
+
+### Form-Item Methods
+
+| 方法名      | 说明          | 参数
+|---------- |-------------- | --------------
+| resetField | 对该表单项进行重置，将其值重置为初始值并移除校验结果 | -

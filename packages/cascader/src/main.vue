@@ -24,7 +24,7 @@
       :size="size"
       :disabled="disabled"
     >
-      <template slot="icon">
+      <template slot="suffix">
         <i
           key="1"
           v-if="clearable && inputHover && currentLabels.length"
@@ -34,7 +34,7 @@
         <i
           key="2"
           v-else
-          class="el-input__icon el-icon-caret-bottom"
+          class="el-input__icon el-icon-arrow-down"
           :class="{ 'is-reverse': menuVisible }"
         ></i>
       </template>
@@ -327,7 +327,7 @@ export default {
       if (this.disabled) return;
       if (this.filterable) {
         this.menuVisible = true;
-        this.$refs.input.$refs.input.focus();
+        this.$refs.input.focus();
         return;
       }
       this.menuVisible = !this.menuVisible;

@@ -3,7 +3,7 @@
     @click.stop="handleClick"
     v-show="node.visible"
     :class="{
-      'is-expanded': childNodeRendered && expanded,
+      'is-expanded': expanded,
       'is-current': tree.store.currentNode === node,
       'is-hidden': !node.visible
     }">
@@ -18,8 +18,9 @@
         v-if="showCheckbox"
         v-model="node.checked"
         :indeterminate="node.indeterminate"
-        @change="handleCheckChange"
-        @click.native.stop="handleUserClick">
+        :disabled="!!node.disabled"
+        @click.native.stop
+        @change="handleCheckChange">
       </el-checkbox>
       <span
         v-if="node.loading"
@@ -30,6 +31,7 @@
     <el-collapse-transition>
       <div
         class="el-tree-node__children"
+        v-if="childNodeRendered"
         v-show="expanded">
         <el-tree-node
           :render-content="renderContent"
@@ -109,7 +111,7 @@
       },
 
       'node.expanded'(val) {
-        this.expanded = val;
+        this.$nextTick(() => this.expanded = val);
         if (val) {
           this.childNodeRendered = true;
         }
@@ -155,16 +157,8 @@
         }
       },
 
-      handleUserClick() {
-        if (this.node.indeterminate) {
-          this.node.setChecked(this.node.checked, !this.tree.checkStrictly);
-        }
-      },
-
-      handleCheckChange(ev) {
-        if (!this.node.indeterminate) {
-          this.node.setChecked(ev.target.checked, !this.tree.checkStrictly);
-        }
+      handleCheckChange(value, ev) {
+        this.node.setChecked(ev.target.checked, !this.tree.checkStrictly);
       },
 
       handleChildNodeExpand(nodeData, node, instance) {

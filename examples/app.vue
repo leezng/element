@@ -7,21 +7,44 @@
     margin: 0;
     padding: 0;
     height: 100%;
+    font-family: 'Helvetica Neue',Helvetica,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',SimSun,sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+
+    &.is-component {
+      overflow: hidden;
+    }
   }
 
   #app {
     height: 100%;
-  }
+    
+    @when component {
+      overflow-y: hidden;
 
-  body {
-    font-family: 'Helvetica Neue',Helvetica,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',SimSun,sans-serif;
-    overflow: auto;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
+      .main-cnt {
+        padding: 0;
+        margin-top: 0;
+        height: 100%;
+        min-height: auto;
+      }
+
+      .headerWrapper {
+        position: fixed;
+        width: 100%;
+        left: 0;
+        top: 0;
+        z-index: 1500;
+        
+        .container {
+          padding: 0;
+        }
+      }
+    }
   }
 
   a {
-    color: #4078c0;
+    color: #409EFF;
     text-decoration: none;
   }
 
@@ -44,7 +67,7 @@
     font-family: Menlo, Monaco, Consolas, Courier, monospace;
     font-size: 12px;
     padding: 18px 24px;
-    background-color: #f9fafc;
+    background-color: #fafafa;
     border: solid 1px #eaeefb;
     margin-bottom: 25px;
     border-radius: 4px;
@@ -107,9 +130,23 @@
       background-color: #ECF8FF;
       border-radius: 4px;
       border-left: #50bfff 5px solid;
+      margin: 20px 0;
 
       code {
-        background-color: rgba(#fff, .7);
+        background-color: rgba(255, 255, 255, .7);
+        color: #445368;
+      }
+    }
+
+    .warning {
+      padding: 8px 16px;
+      background-color: #fff6f7;
+      border-radius: 4px;
+      border-left: #FE6C6F 5px solid;
+      margin: 20px 0;
+
+      code {
+        background-color: rgba(255, 255, 255, .7);
         color: #445368;
       }
     }
@@ -129,16 +166,20 @@
     .page-container {
       padding: 0 20px;
     }
+  
+    #app.is-component .headerWrapper .container {
+      padding: 0 12px;
+    }
   }
 </style>
 
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'is-component': isComponent }">
     <main-header v-if="lang !== 'play'"></main-header>
     <div class="main-cnt">
       <router-view></router-view>
     </div>
-    <main-footer v-if="lang !== 'play'"></main-footer>
+    <main-footer v-if="lang !== 'play' && !isComponent"></main-footer>
   </div>
 </template>
 
@@ -154,6 +195,9 @@
     computed: {
       lang() {
         return this.$route.path.split('/')[1] || 'zh-CN';
+      },
+      isComponent() {
+        return /^component-/.test(this.$route.name || '');
       }
     },
 

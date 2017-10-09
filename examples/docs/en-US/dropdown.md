@@ -9,7 +9,7 @@
     }
     .el-dropdown-link {
       cursor: pointer;
-      color: #20a0ff;
+      color: #409EFF;
     }
     .el-icon-caret-bottom {
       font-size: 12px;
@@ -71,6 +71,17 @@ Hover on the dropdown menu to unfold it for more actions.
     <el-dropdown-item divided>Action 5</el-dropdown-item>
   </el-dropdown-menu>
 </el-dropdown>
+
+<style>
+  .el-dropdown-link {
+    cursor: pointer;
+    color: #409EFF;
+  }
+  .el-icon-caret-bottom {
+    font-size: 12px;
+  }
+</style>
+
 ```
 
 :::
@@ -103,6 +114,28 @@ Use the button to trigger the dropdown list.
     <el-dropdown-item>Action 5</el-dropdown-item>
   </el-dropdown-menu>
 </el-dropdown>
+
+<style>
+  .el-dropdown {
+    vertical-align: top;
+  }
+  .el-dropdown + .el-dropdown {
+    margin-left: 15px;
+  }
+  .el-icon-caret-bottom {
+    font-size: 12px;
+  }
+</style>
+
+<script>
+  export default {
+    methods: {
+      handleClick() {
+        alert('button click');
+      }
+    }
+  }
+</script>
 ```
 :::
 
@@ -145,6 +178,22 @@ Click the triggering element or hover on it.
     </el-dropdown>
   </el-col>
 </el-row>
+
+<style>
+  .el-dropdown-link {
+    cursor: pointer;
+    color: #409EFF;
+  }
+  .el-icon-caret-bottom {
+    font-size: 12px;
+  }
+  .demonstration {
+    display: block;
+    color: #8492a6;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+</style>
 ```
 :::
 
@@ -166,6 +215,16 @@ Use `hide-on-click` to define if menu closes on clicking.
     <el-dropdown-item divided>Action 5</el-dropdown-item>
   </el-dropdown-menu>
 </el-dropdown>
+
+<style>
+  .el-dropdown-link {
+    cursor: pointer;
+    color: #409EFF;
+  }
+  .el-icon-caret-bottom {
+    font-size: 12px;
+  }
+</style>
 ```
 :::
 
@@ -187,6 +246,17 @@ Clicking each dropdown item fires an event whose parameter is assigned by each i
     <el-dropdown-item command="e" divided>Action 5</el-dropdown-item>
   </el-dropdown-menu>
 </el-dropdown>
+
+<style>
+  .el-dropdown-link {
+    cursor: pointer;
+    color: #409EFF;
+  }
+  .el-icon-caret-bottom {
+    font-size: 12px;
+  }
+</style>
+
 <script>
   export default {
     methods: {
@@ -199,15 +269,64 @@ Clicking each dropdown item fires an event whose parameter is assigned by each i
 ```
 :::
 
+### Sizes
+
+Besides default size, Dropdown component provides three additional sizes for you to choose among different scenarios.
+
+:::demo Use attribute `size` to set additional sizes with `medium`, `small` or `mini`.
+
+```html
+<el-dropdown split-button type="primary">
+  Default
+  <el-dropdown-menu slot="dropdown">
+    <el-dropdown-item>Action 1</el-dropdown-item>
+    <el-dropdown-item>Action 2</el-dropdown-item>
+    <el-dropdown-item>Action 3</el-dropdown-item>
+    <el-dropdown-item>Action 4</el-dropdown-item>
+  </el-dropdown-menu>
+</el-dropdown>
+
+<el-dropdown size="medium" split-button type="primary">
+  Medium
+  <el-dropdown-menu slot="dropdown">
+    <el-dropdown-item>Action 1</el-dropdown-item>
+    <el-dropdown-item>Action 2</el-dropdown-item>
+    <el-dropdown-item>Action 3</el-dropdown-item>
+    <el-dropdown-item>Action 4</el-dropdown-item>
+  </el-dropdown-menu>
+</el-dropdown>
+
+<el-dropdown size="small" split-button type="primary">
+  Small
+  <el-dropdown-menu slot="dropdown">
+   <el-dropdown-item>Action 1</el-dropdown-item>
+   <el-dropdown-item>Action 2</el-dropdown-item>
+   <el-dropdown-item>Action 3</el-dropdown-item>
+   <el-dropdown-item>Action 4</el-dropdown-item>
+  </el-dropdown-menu>
+</el-dropdown>
+
+<el-dropdown size="mini" split-button type="primary">
+  Mini
+  <el-dropdown-menu slot="dropdown">
+    <el-dropdown-item>Action 1</el-dropdown-item>
+    <el-dropdown-item>Action 2</el-dropdown-item>
+    <el-dropdown-item>Action 3</el-dropdown-item>
+    <el-dropdown-item>Action 4</el-dropdown-item>
+  </el-dropdown-menu>
+</el-dropdown>
+```
+:::
+
 
 ### Dropdown Attributes
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
 |-------------  |---------------- |---------------- |---------------------- |-------- |
-| type          | menu button type, refer to `Button` Component, only works when `split-button` is true  | string  |          —             |    —     |
-| size          | menu button size, refer to `Button` Component, only works when `split-button` is true  | string  |          —             |    —     |
+| type          | menu button type, refer to `Button` Component, only works when `split-button` is true  | string  |  —   |    —     |
+| size          | menu size, refer to `Button` Component, also works on the Split-button  | string  | large / small / mini  |    —     |
 | split-button | whether a button group is displayed | boolean         |     —       | false   |
 | size          | component size, refer to `Button` component     | string          | large, small, mini  |  —  |
-| menu-align    | horizontal alignment     | string          | start/end  | end |
+| placement    | placement of pop menu | string | top/top-start/top-end/bottom/bottom-start/bottom-end  | bottom-end |
 | trigger       | how to trigger     | string  |    hover/click  |  hover |
 | hide-on-click | whether to hide menu after clicking menu-item     | boolean          | — | true |
 
@@ -221,6 +340,6 @@ Clicking each dropdown item fires an event whose parameter is assigned by each i
 ### Dropdown Menu Item Attributes
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
 |-------------  |---------------- |---------------- |---------------------- |-------- |
-| command       | a command to be dispatched to Dropdown's `command` callback | string  |          —             |    —     |
+| command       | a command to be dispatched to Dropdown's `command` callback | string/number/object  |          —             |    —     |
 | disabled      | whether the item is disabled  | boolean  |          —             |    false     |
 | divided       | whether a divider is displayed  | boolean  |          —             |    false     |
