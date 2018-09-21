@@ -18,7 +18,9 @@
       tabPosition: {
         type: String,
         default: 'top'
-      }
+      },
+      beforeLeave: Function,
+      stretch: Boolean
     },
 
     provide() {
@@ -67,12 +69,28 @@
         this.$emit('tab-add');
       },
       setCurrentName(value) {
-        this.currentName = value;
-        this.$emit('input', value);
+        const changeCurrentName = () => {
+          this.currentName = value;
+          this.$emit('input', value);
+        };
+        if (this.currentName !== value && this.beforeLeave) {
+          const before = this.beforeLeave(value, this.currentName);
+          if (before && before.then) {
+            before.then(() => {
+              changeCurrentName();
+
+              this.$refs.nav && this.$refs.nav.removeFocus();
+            });
+          } else if (before !== false) {
+            changeCurrentName();
+          }
+        } else {
+          changeCurrentName();
+        }
       },
       addPanes(item) {
         const index = this.$slots.default.filter(item => {
-          return item.elm.nodeType === 1 && /\bel-tab-pane\b/.test(item.elm.className);
+          return item.elm.nodeType === 1 && /\bel-tab-pane\b/.test(item.elm.className) || item.elm.nodeType === 8;
         }).indexOf(item.$vnode);
         this.panes.splice(index, 0, item);
       },
@@ -94,20 +112,21 @@
         panes,
         editable,
         addable,
-        tabPosition
+        tabPosition,
+        stretch
       } = this;
 
       const newButton = editable || addable
         ? (
-            <span
-              class="el-tabs__new-tab"
-              on-click={ handleTabAdd }
-              tabindex="0"
-              on-keydown={ (ev) => { if (ev.keyCode === 13) { handleTabAdd(); }} }
-            >
-                <i class="el-icon-plus"></i>
-            </span>
-          )
+          <span
+            class="el-tabs__new-tab"
+            on-click={ handleTabAdd }
+            tabindex="0"
+            on-keydown={ (ev) => { if (ev.keyCode === 13) { handleTabAdd(); }} }
+          >
+            <i class="el-icon-plus"></i>
+          </span>
+        )
         : null;
 
       const navData = {
@@ -117,12 +136,13 @@
           onTabRemove: handleTabRemove,
           editable,
           type,
-          panes
+          panes,
+          stretch
         },
         ref: 'nav'
       };
       const header = (
-        <div class="el-tabs__header">
+        <div class={['el-tabs__header', `is-${tabPosition}`]}>
           {newButton}
           <tab-nav { ...navData }></tab-nav>
         </div>

@@ -409,7 +409,7 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
 
 在防止用户犯错的前提下，尽可能让用户更早地发现并纠正错误。
 
-:::demo Form 组件提供了表单验证的功能，只需要通过 `rules` 属性传入约定的验证规则，并 Form-Item 的 `prop` 属性设置为需校验的字段名即可。校验规则参见 [async-validator](https://github.com/yiminghe/async-validator)
+:::demo Form 组件提供了表单验证的功能，只需要通过 `rules` 属性传入约定的验证规则，并将 Form-Item 的 `prop` 属性设置为需校验的字段名即可。校验规则参见 [async-validator](https://github.com/yiminghe/async-validator)
 ```html
 <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
   <el-form-item label="活动名称" prop="name">
@@ -527,10 +527,10 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
 ```html
 <el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="100px" class="demo-ruleForm">
   <el-form-item label="密码" prop="pass">
-    <el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
+    <el-input type="password" v-model="ruleForm2.pass" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item label="确认密码" prop="checkPass">
-    <el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off"></el-input>
+    <el-input type="password" v-model="ruleForm2.checkPass" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item label="年龄" prop="age">
     <el-input v-model.number="ruleForm2.age"></el-input>
@@ -627,7 +627,7 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
     label="邮箱"
     :rules="[
       { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-      { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur,change' }
+      { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
     ]"
   >
     <el-input v-model="dynamicValidateForm.email"></el-input>
@@ -706,7 +706,7 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
       { type: 'number', message: '年龄必须为数字值'}
     ]"
   >
-    <el-input type="age" v-model.number="numberValidateForm.age" auto-complete="off"></el-input>
+    <el-input type="age" v-model.number="numberValidateForm.age" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item>
     <el-button type="primary" @click="submitForm('numberValidateForm')">提交</el-button>
@@ -823,22 +823,30 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
 | model   | 表单数据对象 | object      |                  —                |  — |
 | rules    | 表单验证规则 | object | — | — |
 | inline    | 行内表单模式 | boolean | — | false |
-| label-position | 表单域标签的位置 | string |  right/left/top            | right |
+| label-position | 表单域标签的位置，如果值为 left 或者 right 时，则需要设置 `label-width` | string |  right/left/top            | right |
 | label-width | 表单域标签的宽度，作为 Form 直接子元素的 form-item 会继承该值 | string | — | — |
 | label-suffix | 表单域标签的后缀 | string | — | — |
+| hide-required-asterisk | 是否显示必填字段的标签旁边的红色星号 | boolean | — | false |
 | show-message  | 是否显示校验错误信息 | boolean | — | true |
 | inline-message  | 是否以行内形式展示校验信息 | boolean | — | false |
 | status-icon  | 是否在输入框中显示校验结果反馈图标 | boolean | — | false |
-| size  | 用于控制该表单内组件的尺寸 | string | medium / small / mini | - |
+| validate-on-rule-change  | 是否在 `rules` 属性改变后立即触发一次验证 | boolean | — | true |
+| size  | 用于控制该表单内组件的尺寸 | string | medium / small / mini | — |
+| disabled | 是否禁用该表单内的所有组件。若设置为 true，则表单内组件上的 disabled 属性不再生效 | boolean | — | false |
 
 ### Form Methods
 
 | 方法名      | 说明          | 参数
 |---------- |-------------- | --------------
-| validate | 对整个表单进行校验的方法。若不传入回调函数，则会返回一个 promise | Function(callback: Function(boolean))
+| validate | 对整个表单进行校验的方法，参数为一个回调函数。该回调函数会在校验结束后被调用，并传入两个参数：是否校验成功和未通过校验的字段。若不传入回调函数，则会返回一个 promise | Function(callback: Function(boolean, object))
 | validateField | 对部分表单字段进行校验的方法 | Function(prop: string, callback: Function(errorMessage: string))
-| resetFields | 对整个表单进行重置，将所有字段值重置为初始值并移除校验结果 | -
-| clearValidate | 移除整个表单的校验结果 | -
+| resetFields | 对整个表单进行重置，将所有字段值重置为初始值并移除校验结果 | —
+| clearValidate | 移除表单项的校验结果。传入待移除的表单项的 prop 属性组成的数组，如不传则移除整个表单的校验结果 | Function(props: array)
+
+### Form Events
+| 事件名称 | 说明    | 回调参数  |
+|--------- |-------- |---------- |
+| validate | 任一表单项被校验后触发 | 被校验的表单项 prop 值，校验是否通过 |
 
 ### Form-Item Attributes
 
@@ -847,7 +855,7 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
 | prop    | 表单域 model 字段，在使用 validate、resetFields 方法的情况下，该属性是必填的 | string    | 传入 Form 组件的 `model` 中的字段 | — |
 | label | 标签文本 | string | — | — |
 | label-width | 表单域标签的的宽度，例如 '50px' | string |       —       | — |
-| required | 是否必填，如不设置，则会根据校验规则自动生成 | bolean | — | false |
+| required | 是否必填，如不设置，则会根据校验规则自动生成 | boolean | — | false |
 | rules    | 表单验证规则 | object | — | — |
 | error    | 表单域验证错误信息, 设置该值会使表单验证状态变为`error`，并显示该错误信息 | string | — | — |
 | show-message  | 是否显示校验错误信息 | boolean | — | true |
@@ -860,8 +868,14 @@ W3C 标准中有如下[规定](https://www.w3.org/MarkUp/html-spec/html-spec_8.h
 | — | Form Item 的内容 |
 | label | 标签文本的内容 |
 
+### Form-Item Scoped Slot
+|  name  |   说明  |
+|--------|--------|
+|  error | 自定义表单校验信息的显示方式，参数为 { error } |
+
 ### Form-Item Methods
 
 | 方法名      | 说明          | 参数
 |---------- |-------------- | --------------
 | resetField | 对该表单项进行重置，将其值重置为初始值并移除校验结果 | -
+| clearValidate | 移除该表单项的校验结果 | -

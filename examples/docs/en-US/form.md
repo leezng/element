@@ -538,10 +538,10 @@ This example shows how to customize your own validation rules to finish a two-fa
 ```html
 <el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2" label-width="120px" class="demo-ruleForm">
   <el-form-item label="Password" prop="pass">
-    <el-input type="password" v-model="ruleForm2.pass" auto-complete="off"></el-input>
+    <el-input type="password" v-model="ruleForm2.pass" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item label="Confirm" prop="checkPass">
-    <el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off"></el-input>
+    <el-input type="password" v-model="ruleForm2.checkPass" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item label="Age" prop="age">
     <el-input v-model.number="ruleForm2.age"></el-input>
@@ -639,7 +639,7 @@ This example shows how to customize your own validation rules to finish a two-fa
     label="Email"
     :rules="[
       { required: true, message: 'Please input email address', trigger: 'blur' },
-      { type: 'email', message: 'Please input correct email address', trigger: 'blur,change' }
+      { type: 'email', message: 'Please input correct email address', trigger: ['blur', 'change'] }
     ]"
   >
     <el-input v-model="dynamicValidateForm.email"></el-input>
@@ -719,7 +719,7 @@ This example shows how to customize your own validation rules to finish a two-fa
       { type: 'number', message: 'age must be a number'}
     ]"
   >
-    <el-input type="age" v-model.number="numberValidateForm.age" auto-complete="off"></el-input>
+    <el-input type="age" v-model.number="numberValidateForm.age" autocomplete="off"></el-input>
   </el-form-item>
   <el-form-item>
     <el-button type="primary" @click="submitForm('numberValidateForm')">Submit</el-button>
@@ -835,22 +835,30 @@ All components in a Form inherit their `size` attribute from that Form. Similarl
 | model| data of form component | object | — | — |
 | rules | validation rules of form | object | — | — |
 | inline | whether the form is inline | boolean | — | false |
-| label-position | position of label | string | left / right / top | right |
+| label-position | position of label. If set to 'left' or 'right', `label-width` prop is also required | string | left / right / top | right |
 | label-width | width of label, and all its direct child form items will inherit this value | string | — | — |
 | label-suffix | suffix of the label | string | — | — |
+| hide-required-asterisk | whether required fields should have a red asterisk (star) beside their labels | boolean | — | false |
 | show-message  | whether to show the error message | boolean | — | true |
 | inline-message  | whether to display the error message inline with the form item | boolean | — | false |
 | status-icon  | whether to display an icon indicating the validation result | boolean | — | false |
-| size  | control the size of components in this form | string | medium / small / mini | - |
+| validate-on-rule-change  | whether to trigger validation when the `rules` prop is changed | boolean | — | true |
+| size  | control the size of components in this form | string | medium / small / mini | — |
+| disabled | whether to disabled all components in this form. If set to true, it cannot be overridden by its inner components' `disabled` prop | boolean | — | false |
 
 ### Form Methods
 
 | Method | Description | Parameters |
 | ---- | ---- | ---- |
-| validate | the method to validate the whole form. Returns a promise if callback is omitted | Function(callback: Function(boolean)) |
-| validateField | the method to validate a certain form item | Function(prop: string, callback: Function(errorMessage: string)) |
+| validate | validate the whole form. Takes a callback as a param. After validation, the callback will be executed with two params: a boolean indicating if the validation has passed, and an object containing all fields that fail the validation. Returns a promise if callback is omitted | Function(callback: Function(boolean, object)) |
+| validateField | validate a certain form item | Function(prop: string, callback: Function(errorMessage: string)) |
 | resetFields | reset all the fields and remove validation result | — |
-| clearValidate | clear validation message for all fields | -
+| clearValidate | clear validation message for certain fields. The parameter is an array of prop names of the form items whose validation messages will be removed. When omitted, all fields' validation messages will be cleared | Function(props: array)
+
+### Form Events
+| Event Name | Description | Parameters |
+|----------- |------------ |----------- |
+| validate   | triggers after a form item is validated | prop name of the form item being validated, whether validation is passed |
 
 ### Form-Item Attributes
 
@@ -859,7 +867,7 @@ All components in a Form inherit their `size` attribute from that Form. Similarl
 | prop | a key of `model`. In the use of validate and resetFields method, the attribute is required | string | keys of model that passed to `form` |
 | label | label | string | — | — |
 | label-width | width of label, e.g. '50px' | string | — | — |
-| required | whether the field is required or not, will be determined by validation rules if omitted | string |  — | false |
+| required | whether the field is required or not, will be determined by validation rules if omitted | boolean |  — | false |
 | rules | validation rules of form | object | — | — |
 | error | field error message, set its value and the field will validate error and show this message immediately | string | — | — |
 | show-message  | whether to show the error message | boolean | — | true |
@@ -872,8 +880,14 @@ All components in a Form inherit their `size` attribute from that Form. Similarl
 | — | content of Form Item |
 | label | content of label |
 
+### Form-Item Scoped Slot
+|      Name     | Description |
+|---------------|-------------|
+|      error    | Custom content to display validation message. The scope parameter is { error } |
+
 ### Form-Item Methods
 
 | Method | Description | Parameters |
 | ---- | ---- | ---- |
 | resetField | reset current field and remove validation result | — |
+| clearValidate | remove validation status of the field | - |

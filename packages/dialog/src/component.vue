@@ -1,5 +1,8 @@
 <template>
-  <transition name="dialog-fade">
+  <transition
+    name="dialog-fade"
+    @after-enter="afterEnter"
+    @after-leave="afterLeave">
     <div class="el-dialog__wrapper" v-show="visible" @click.self="handleWrapperClick">
       <div
         class="el-dialog"
@@ -127,11 +130,11 @@
     computed: {
       style() {
         let style = {};
-        if (this.width) {
-          style.width = this.width;
-        }
         if (!this.fullscreen) {
           style.marginTop = this.top;
+          if (this.width) {
+            style.width = this.width;
+          }
         }
         return style;
       }
@@ -166,6 +169,12 @@
       updatePopper() {
         this.broadcast('ElSelectDropdown', 'updatePopper');
         this.broadcast('ElDropdownMenu', 'updatePopper');
+      },
+      afterEnter() {
+        this.$emit('opened');
+      },
+      afterLeave() {
+        this.$emit('closed');
       }
     },
 
@@ -176,6 +185,13 @@
         if (this.appendToBody) {
           document.body.appendChild(this.$el);
         }
+      }
+    },
+
+    destroyed() {
+      // if appendToBody is true, remove DOM node after destroy
+      if (this.appendToBody && this.$el && this.$el.parentNode) {
+        this.$el.parentNode.removeChild(this.$el);
       }
     }
   };
